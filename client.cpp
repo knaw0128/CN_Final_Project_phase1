@@ -54,6 +54,7 @@ int main(int argc, char **argv){
 	}
 	build_connect(atoi(port), ip);
 	mkdir("./client_dir", 0777);
+	chdir("./client_dir");
 
 	char name[128], name_buf[1024];
 	read(svr.listen_fd, name_buf, 1024);
@@ -69,12 +70,6 @@ int main(int argc, char **argv){
 		*(end+1)='\0';
 		printf("%s", name_buf);
 	}
-
-	name[strlen(name)-1]='\0';
-	char dir_now[256]="./client_dir/";
-	strcat(dir_now, name);
-	mkdir(dir_now, 0777);
-	chdir(dir_now);
 
 	while(1){
 		char command[128];
@@ -160,7 +155,7 @@ int main(int argc, char **argv){
 				file_size = atoi(ACK);
 			}
 			
-			int file_fd=open(file_name, O_WRONLY|O_CREAT|O_APPEND);
+			int file_fd=open(file_name, O_WRONLY|O_CREAT|O_APPEND, 0777);
 			if(file_fd<0){
 				fprintf(stderr, "open file get error\n");
 				perror("Error : ");

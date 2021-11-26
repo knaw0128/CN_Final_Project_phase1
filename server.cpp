@@ -30,7 +30,6 @@ typedef struct {
     // you don't need to change this.
     int id;
     int status; // 0 for start 1 get command 2 for putting 3 for getting
-    char user_name[128];
     int get_fd;
     int put_fd;
     long long int file_size;
@@ -71,7 +70,6 @@ int handle_read(request* reqP) {
 
 int main(int argc, char **argv){
 
-    // Parse args.
     if (argc != 2){
         fprintf(stderr, "usage: %s [port]\n", argv[0]);
         exit(1);
@@ -92,7 +90,6 @@ int main(int argc, char **argv){
     // Initialize server
     init_server((unsigned short)atoi(argv[1]));
 
-    // Loop for handling connections
     fprintf(stderr, "\nstarting on %.80s, port %d, fd %d, maxconn %d...\n", svr.hostname, svr.port, svr.listen_fd, maxfd);
 
     char buffer[1024];
@@ -142,10 +139,6 @@ int main(int argc, char **argv){
                 if(user.find(now)==user.end()){
                     user[now] = 1;
                     requestP[conn_fd].status = 1;
-                    strcpy(requestP[conn_fd].user_name, now.c_str());
-                    char user_dir[256];
-                    sprintf(user_dir, "./%s", requestP[conn_fd].user_name);
-                    mkdir(user_dir, 0777);
                     write(requestP[conn_fd].conn_fd, "connect successfully\n", 22);
                 }
                 else{
@@ -161,9 +154,7 @@ int main(int argc, char **argv){
                 }
                 
                 if(strcmp(requestP[conn_fd].buf,"ls")==0){
-                    char dir_name[256];
-                    sprintf(dir_name, "./%s",requestP[conn_fd].user_name);
-                    DIR* userDir = opendir(dir_name);
+                    DIR* userDir = opendir(".");
                     struct dirent* user_file = readdir(userDir);
                     user_file = readdir(userDir);
 
@@ -195,7 +186,7 @@ int main(int argc, char **argv){
                     write(requestP[conn_fd].conn_fd, "ACK", 4);
                     
                     char file_place[512];
-                    sprintf(file_place,"./%s/%s",requestP[conn_fd].user_name, file_name);
+                    sprintf(file_place,"./%s", file_name);
                     requestP[conn_fd].put_fd = open(file_place, O_RDWR|O_CREAT|O_APPEND, 0666);
                     if(requestP[conn_fd].put_fd<0){
                         fprintf(stderr, "error open file\n");
@@ -213,9 +204,9 @@ int main(int argc, char **argv){
                     }
                     char file_name[128];
                     strcpy(file_name, requestP[conn_fd].buf);
-                    char file_place[512];
-                    sprintf(file_place,"./%s/%s",requestP[conn_fd].user_name, file_name);
-                    requestP[conn_fd].get_fd = open(file_place, O_RDONLY, 0666);
+                    char file_place[256];
+                    sprintf(file_place,"./%s", file_name);
+                    requestP[conn_fd].get_fd = open(file_place, O_RDONLY, 0777);
                     if(requestP[conn_fd].get_fd<0){
                         write(requestP[conn_fd].conn_fd, "DNE", 4);
                         continue;
@@ -285,6 +276,9 @@ static void init_request(request *reqP){
     reqP->conn_fd = -1;
     reqP->buf_len = 0;
     reqP->id = 0;
+    reqP->get_fd = -1;
+    reqP->file_size = 0;
+    reqP->status = 0;
 }
 
 static void free_request(request *reqP){
