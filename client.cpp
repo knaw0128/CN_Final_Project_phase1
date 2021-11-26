@@ -107,26 +107,72 @@ int main(int argc, char **argv){
 			char tofile[129];
 			sprintf(tofile, "%s\n", file_name);
 			write(svr.listen_fd, tofile, strlen(tofile));
-
 			read(svr.listen_fd, ACK, 4);
 			if(strcmp(ACK, "ACK")!=0){
 				fprintf(stderr, "putting error\n");
 				return 0;
 			}
 			
-			char file_buf[1100]="\0";
-			int filesize=lseek(file_fd, 0, SEEK_END);
+			long long int filesize=lseek(file_fd, 0, SEEK_END);
+			fprintf(stderr,"filesize = %lld\n", filesize);
 			lseek(file_fd, 0, SEEK_SET);
+			char tosize[128];
+			sprintf(tosize, "%lld\n", filesize);
+			write(svr.listen_fd, tosize, strlen(tosize));
+			read(svr.listen_fd, ACK, 4);
+			if(strcmp(ACK, "ACK")!=0){
+				fprintf(stderr, "putting error\n");
+				return 0;
+			}
+			
 			while(filesize>0){
+				char file_buf[1100]="\0";
 				int now = read(file_fd, file_buf, 1024);
-				int sent = send(svr.listen_fd, file_buf, 1024, 0);
+				int sent = send(svr.listen_fd, file_buf, now, 0);
+				fprintf(stderr, "now = %d  sent = %d\n", now, sent);
 				filesize-=now;
 			}
-			send(svr.listen_fd, "putend", 7, 0);
+
 			printf("put %s successfully\n",file_name);
 		}
 		else if(strcmp(command, "get")==0){
+			char file_name[128];
+			scanf("%s", file_name);
+			write(svr.listen_fd, "get\n", 5);
+			char ACK[32];
+			read(svr.listen_fd, ACK, 4);
+			if(strcmp(ACK, "ACK")!=0){
+				fprintf(stderr, "getting error\n");
+				return 0;
+			}
+			char tofile[129];
+			long long int file_size;
+			sprintf(tofile, "%s\n", file_name);
+			write(svr.listen_fd, tofile, strlen(tofile));
+			read(svr.listen_fd, ACK, 32);
+			if(strcmp(ACK, "DNE")==0){
+				printf("The %s doesn’t exist\n", file_name);
+				continue;
+			}
+			else{
+				char *change=strstr(ACK, "\n");
+				*change='\0';
+				file_size = atoi(ACK);
+			}
 			
+			int file_fd=open(file_name, O_WRONLY|O_CREAT|O_APPEND);
+			if(file_fd<0){
+				fprintf(stderr, "open file get error\n");
+				perror("Error : ");
+				continue;
+			}
+			char file_buf[1100];
+			while(file_size>0){
+				int get = recv(svr.listen_fd, file_buf, 1024, 0);
+				int rev = write(file_fd, file_buf, get);
+				file_size -= get;
+			}
+			printf("get %s successfully\n",file_name);
 		}
 		
 	}

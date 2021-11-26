@@ -33,6 +33,7 @@ typedef struct {
     char user_name[128];
     int get_fd;
     int put_fd;
+    long long int file_size;
 } request;
 
 server svr;
@@ -104,7 +105,7 @@ int main(int argc, char **argv){
             if(incomeFD[a])
                 FD_SET(a, &ready);
 
-        int co = select(maxfd, &ready, NULL, NULL, NULL);
+        int co = select(maxfd, &ready, &ready, NULL, NULL);
 
         if(FD_ISSET(svr.listen_fd, &ready)){
             clilen = sizeof(cliaddr);
@@ -186,6 +187,13 @@ int main(int argc, char **argv){
                     char file_name[128];
                     strcpy(file_name, requestP[conn_fd].buf);
                     write(requestP[conn_fd].conn_fd, "ACK", 4);
+                    if(handle_read(&requestP[conn_fd])<=0){
+                        fprintf(stderr, "error getting filename\n");
+                        continue;
+                    }
+                    requestP[conn_fd].file_size=atoi(requestP[conn_fd].buf);
+                    write(requestP[conn_fd].conn_fd, "ACK", 4);
+                    
                     char file_place[512];
                     sprintf(file_place,"./%s/%s",requestP[conn_fd].user_name, file_name);
                     requestP[conn_fd].put_fd = open(file_place, O_RDWR|O_CREAT|O_APPEND, 0666);
@@ -198,7 +206,30 @@ int main(int argc, char **argv){
                     continue;
                 }
                 else if(strcmp(requestP[conn_fd].buf, "get")==0){
-
+                    write(requestP[conn_fd].conn_fd, "ACK", 4);
+                    if(handle_read(&requestP[conn_fd])<=0){
+                        fprintf(stderr, "error getting filename\n");
+                        continue;
+                    }
+                    char file_name[128];
+                    strcpy(file_name, requestP[conn_fd].buf);
+                    char file_place[512];
+                    sprintf(file_place,"./%s/%s",requestP[conn_fd].user_name, file_name);
+                    requestP[conn_fd].get_fd = open(file_place, O_RDONLY, 0666);
+                    if(requestP[conn_fd].get_fd<0){
+                        write(requestP[conn_fd].conn_fd, "DNE", 4);
+                        continue;
+                    }
+                    else{
+                        long long int file_size=lseek(requestP[conn_fd].get_fd, 0, SEEK_END);
+                        lseek(requestP[conn_fd].get_fd, 0, SEEK_SET);
+                        requestP[conn_fd].file_size = file_size;
+                        char size[32];
+                        sprintf(size, "%lld\n", file_size);                      
+                        write(requestP[conn_fd].conn_fd, size, strlen(size));
+                    }
+                    requestP[conn_fd].status = 3;
+                    continue;
                 }
                 else{
                     write(requestP[conn_fd].conn_fd, "Command not found\n", 19);
@@ -206,6 +237,11 @@ int main(int argc, char **argv){
                 }
             }
             else if(requestP[conn_fd].status==2){
+                if(requestP[conn_fd].file_size<=0){
+                    requestP[conn_fd].put_fd = -1;
+                    requestP[conn_fd].status = 1;
+                    continue;
+                }
                 char file_buf[1100];
                 int now=recv(requestP[conn_fd].conn_fd, file_buf, 1024, 0);
                 if(now<0){
@@ -213,16 +249,24 @@ int main(int argc, char **argv){
                     perror("Error : ");
                     continue;
                 }
-                else if(strcmp(file_buf, "putend")==0){
-                    requestP[conn_fd].put_fd = -1;
-                    requestP[conn_fd].status = 1;
-                    continue;
-                }
-                
+                requestP[conn_fd].file_size-=now;
                 write(requestP[conn_fd].put_fd, file_buf, now);
             }
             else if(requestP[conn_fd].status==3){
-
+                if(requestP[conn_fd].file_size<=0){
+                    requestP[conn_fd].get_fd = -1;
+                    requestP[conn_fd].status = 1;
+                    continue;
+                }
+                char file_buf[1100];
+                int now=read(requestP[conn_fd].get_fd, file_buf, 1024);
+                if(now<0){
+                    fprintf(stderr, "read error\n");
+                    perror("Error : ");
+                    continue;
+                }
+                int sent=send(requestP[conn_fd].conn_fd, file_buf, now, 0);
+                requestP[conn_fd].file_size-=sent;
             }
 
         }
