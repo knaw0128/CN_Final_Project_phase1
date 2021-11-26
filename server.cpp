@@ -118,9 +118,9 @@ int main(int argc, char **argv){
                 }
                 ERR_EXIT("accept");
             }
-            incomeFD[conn_fd] = 1;
-            requestP[conn_fd].conn_fd = conn_fd;
-            requestP[conn_fd].status = 0;
+            incomeFD[conn_fd]=1;
+            requestP[conn_fd].conn_fd=conn_fd;
+            requestP[conn_fd].status=0;
             strcpy(requestP[conn_fd].host, inet_ntoa(cliaddr.sin_addr));
             write(requestP[conn_fd].conn_fd, "input your username:\n", 21);
             fprintf(stderr, "getting a new request... fd %d from %s\n", conn_fd, requestP[conn_fd].host);

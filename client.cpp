@@ -26,7 +26,6 @@ int min(int a, int b){
 
 void build_connect(int port, char *ip){
 	svr.listen_fd=socket(AF_INET, SOCK_STREAM, 0);
-	fprintf(stderr, "socket build\n");
 	struct sockaddr_in addr;
 	bzero(&addr, sizeof(addr));
 	addr.sin_family = AF_INET;
@@ -35,7 +34,6 @@ void build_connect(int port, char *ip){
 	if(connect(svr.listen_fd, (struct sockaddr *)&addr, sizeof(addr))<0){
 		perror("socket wrong");
 	}
-	fprintf(stderr, "connect successfully\n");
 
 }
 
@@ -54,10 +52,8 @@ int main(int argc, char **argv){
 		port[a]=argv[1][idx];
 		port[a+1]='\0';
 	}
-	fprintf(stderr, "building connection\n");
 	build_connect(atoi(port), ip);
 	mkdir("./client_dir", 0777);
-	fprintf(stderr, "connection builded\n");
 
 	char name[128], name_buf[1024];
 	read(svr.listen_fd, name_buf, 1024);
