@@ -187,6 +187,8 @@ int main(int argc, char **argv){
                         strcat(response, "\n");
                         free(user_file[i]);
                     }
+                    if(strlen(response)==0) 
+                        response[0]='\n';
                     strcat(response, "\0");
                     int sent = send(requestP[conn_fd].conn_fd, response, strlen(response), 0);
                     free(user_file);
@@ -318,10 +320,10 @@ static void free_request(request *reqP){
         close(reqP->conn_fd);
         return;
     }   
-    reqP->user_name.clear();
     readFD[reqP->conn_fd]=0;
     writeFD[reqP->conn_fd]=0;
     user.erase(reqP->user_name);
+    reqP->user_name.clear();
     close(reqP->conn_fd);
     init_request(reqP);
 }

@@ -77,7 +77,7 @@ int main(int argc, char **argv){
 	while(1){
 		char command[128],file_name[128]="\0", buf[256];
 		fgets(buf, 256, stdin);
-		buf[strlen(buf)-1]='\0';
+		*strstr(buf, "\n")='\0';
 		char *space=strstr(buf, " ");
 		if(space!=NULL){
 			*space='\0';
@@ -106,6 +106,7 @@ int main(int argc, char **argv){
 			printf("%s",command_buf);
 		}
 		else if(strcmp(command, "put")==0){
+			fprintf(stderr, "received put\n");
 			int file_fd=open(file_name, O_RDONLY);
 			if(file_fd<0){
 				printf("The %s doesn’t exist\n",file_name);
@@ -149,6 +150,7 @@ int main(int argc, char **argv){
 			printf("put %s successfully\n",file_name);
 		}
 		else if(strcmp(command, "get")==0){
+			fprintf(stderr, "received get\n");
 			write(svr.listen_fd, "get\n", 5);
 			char ACK[32];
 			read(svr.listen_fd, ACK, 4);
