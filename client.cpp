@@ -106,7 +106,6 @@ int main(int argc, char **argv){
 			printf("%s",command_buf);
 		}
 		else if(strcmp(command, "put")==0){
-			fprintf(stderr, "received put\n");
 			int file_fd=open(file_name, O_RDONLY);
 			if(file_fd<0){
 				printf("The %s doesn’t exist\n",file_name);
@@ -150,7 +149,6 @@ int main(int argc, char **argv){
 			printf("put %s successfully\n",file_name);
 		}
 		else if(strcmp(command, "get")==0){
-			fprintf(stderr, "received get\n");
 			write(svr.listen_fd, "get\n", 5);
 			char ACK[32];
 			read(svr.listen_fd, ACK, 4);
