@@ -314,10 +314,14 @@ static void init_request(request *reqP){
 }
 
 static void free_request(request *reqP){
+    if(reqP->status==0){
+        close(reqP->conn_fd);
+        return;
+    }   
+    reqP->user_name.clear();
     readFD[reqP->conn_fd]=0;
     writeFD[reqP->conn_fd]=0;
     user.erase(reqP->user_name);
-    reqP->user_name.clear();
     close(reqP->conn_fd);
     init_request(reqP);
 }
