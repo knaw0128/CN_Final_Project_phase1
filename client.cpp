@@ -139,14 +139,13 @@ int main(int argc, char **argv){
 				fprintf(stderr, "putting error\n");
 				return 0;
 			}
-			
 			while(filesize>0){
 				char file_buf[1100]="\0";
 				int now = read(file_fd, file_buf, 1024);
 				int sent = send(svr.listen_fd, file_buf, now, 0);
 				filesize-=now;
 			}
-			// fprintf(stderr, "done\n");
+
 			printf("put %s successfully\n",file_name);
 		}
 		else if(strcmp(command, "get")==0){

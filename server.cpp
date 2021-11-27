@@ -182,10 +182,10 @@ int main(int argc, char **argv){
                     struct dirent **user_file;
                     int n=scandir(".", &user_file, file_select, alphasort);
                     char response[2048]="\0";
-                    while(n--){
-                        strcat(response, user_file[n]->d_name);
+                    for(int i=0;i<n;i++){
+                        strcat(response, user_file[i]->d_name);
                         strcat(response, "\n");
-                        free(user_file[n]);
+                        free(user_file[i]);
                     }
                     strcat(response, "\0");
                     int sent = send(requestP[conn_fd].conn_fd, response, strlen(response), 0);
