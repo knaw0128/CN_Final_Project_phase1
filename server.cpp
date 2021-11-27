@@ -208,7 +208,7 @@ int main(int argc, char **argv){
                     if(handle_read(&requestP[conn_fd])<=0){
                         continue;
                     }
-                    requestP[conn_fd].file_size=atoi(requestP[conn_fd].buf);
+                    requestP[conn_fd].file_size=atoll(requestP[conn_fd].buf);
                     write(requestP[conn_fd].conn_fd, "ACK", 4);
                     
                     char file_place[512];
@@ -315,6 +315,7 @@ static void init_request(request *reqP){
 
 static void free_request(request *reqP){
     readFD[reqP->conn_fd]=0;
+    writeFD[reqP->conn_fd]=0;
     user.erase(reqP->user_name);
     reqP->user_name.clear();
     close(reqP->conn_fd);

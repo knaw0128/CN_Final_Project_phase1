@@ -168,7 +168,7 @@ int main(int argc, char **argv){
 			else{
 				char *change=strstr(ACK, "\n");
 				*change='\0';
-				file_size = atoi(ACK);
+				file_size = atoll(ACK);
 			}
 			
 			int file_fd=open(file_name, O_WRONLY|O_CREAT|O_APPEND, 0777);
