@@ -118,7 +118,7 @@ int main(int argc, char **argv){
             }   
         }
 
-        int co = select(maxfd, &read_OK, &write_OK, NULL, NULL);
+        int co = select(maxfd+1, &read_OK, &write_OK, NULL, NULL);
 
         if(FD_ISSET(svr.listen_fd, &read_OK)){
             clilen = sizeof(cliaddr);
@@ -140,7 +140,7 @@ int main(int argc, char **argv){
             continue;
         }
 
-        for(conn_fd=4;conn_fd<=100;conn_fd++){
+        for(conn_fd=4;conn_fd<maxfd;conn_fd++){
         
             if(!FD_ISSET(conn_fd, &read_OK)&&!FD_ISSET(conn_fd, &write_OK))
                 continue;

@@ -130,7 +130,6 @@ int main(int argc, char **argv){
 			}
 			
 			long long int filesize=lseek(file_fd, 0, SEEK_END);
-			fprintf(stderr,"filesize = %lld\n", filesize);
 			lseek(file_fd, 0, SEEK_SET);
 			char tosize[128];
 			sprintf(tosize, "%lld\n", filesize);
@@ -147,7 +146,7 @@ int main(int argc, char **argv){
 				int sent = send(svr.listen_fd, file_buf, now, 0);
 				filesize-=now;
 			}
-
+			// fprintf(stderr, "done\n");
 			printf("put %s successfully\n",file_name);
 		}
 		else if(strcmp(command, "get")==0){
