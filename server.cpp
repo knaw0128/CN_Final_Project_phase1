@@ -68,6 +68,12 @@ int handle_read(request* reqP) {
     return 1;
 }
 
+
+int file_select(const struct dirent *entry){
+   return strcmp(entry->d_name, ".")&&strcmp(entry->d_name, "..");
+}
+
+
 int main(int argc, char **argv){
 
     if (argc != 2){
@@ -154,19 +160,17 @@ int main(int argc, char **argv){
                 }
                 
                 if(strcmp(requestP[conn_fd].buf,"ls")==0){
-                    DIR* userDir = opendir(".");
-                    struct dirent* user_file = readdir(userDir);
-                    user_file = readdir(userDir);
-
+                    struct dirent **user_file;
+                    int n=scandir(".", &user_file, file_select, alphasort);
                     char response[2048]="\0";
-                    while((user_file = readdir(userDir))!=NULL){
-                        strcat(response, user_file->d_name);
+                    while(n--){
+                        strcat(response, user_file[n]->d_name);
                         strcat(response, "\n");
+                        free(user_file[n]);
                     }
                     strcat(response, "\0");
                     write(requestP[conn_fd].conn_fd, response, strlen(response));
                     free(user_file);
-                    closedir(userDir);
                     continue;
                 }
                 else if(strcmp(requestP[conn_fd].buf, "put")==0){
@@ -222,10 +226,7 @@ int main(int argc, char **argv){
                     requestP[conn_fd].status = 3;
                     continue;
                 }
-                else{
-                    write(requestP[conn_fd].conn_fd, "Command not found\n", 19);
-                    continue;
-                }
+                
             }
             else if(requestP[conn_fd].status==2){
                 if(requestP[conn_fd].file_size<=0){

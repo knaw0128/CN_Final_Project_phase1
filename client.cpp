@@ -56,14 +56,17 @@ int main(int argc, char **argv){
 	mkdir("./client_dir", 0777);
 	chdir("./client_dir");
 
-	char name[128], name_buf[1024];
+	char name[32], name_buf[1024];
 	read(svr.listen_fd, name_buf, 1024);
 	char *end = strstr(name_buf, "\n");
 	*(end+1)='\0';
 	printf("%s", name_buf);
 	while(strcmp(name_buf, "connect successfully\n")!=0){
-		scanf("%s",name);
-		strcat(name, "\n");
+		fgets(name, 32, stdin);
+		if(strstr(name," ")!=NULL){
+			printf("Command format error\n");
+			continue;
+		}
 		write(svr.listen_fd,name,strlen(name));
 		read(svr.listen_fd, name_buf, 1024);
 		char *end = strstr(name_buf, "\n");
@@ -72,10 +75,30 @@ int main(int argc, char **argv){
 	}
 
 	while(1){
-		char command[128];
-		scanf("%s", command);
+		char command[128],file_name[128]="\0", buf[256];
+		fgets(buf, 256, stdin);
+		buf[strlen(buf)-1]='\0';
+		char *space=strstr(buf, " ");
+		if(space!=NULL){
+			*space='\0';
+			strcpy(command, buf);
+			strcpy(file_name, space+1);
+			char *space2=strstr(space+1, " ");
+			if(space2!=NULL){
+				printf("Command format error\n");
+				continue;
+			}
+			*space=' ';
+		}
+		else{
+			strcpy(command, buf);
+		}
 
 		if(strcmp(command, "ls")==0){
+			if(strlen(buf)!=2){
+				printf("Command format error\n");
+				continue;
+			}
 			char command_buf[2048];
 			write(svr.listen_fd, "ls\n", 4);
 			int len = read(svr.listen_fd, command_buf, sizeof(command_buf));
@@ -83,8 +106,6 @@ int main(int argc, char **argv){
 			printf("%s",command_buf);
 		}
 		else if(strcmp(command, "put")==0){
-			char file_name[128];
-			scanf("%s", file_name);
 			int file_fd=open(file_name, O_RDONLY);
 			if(file_fd<0){
 				printf("The %s doesn’t exist\n",file_name);
@@ -124,15 +145,12 @@ int main(int argc, char **argv){
 				char file_buf[1100]="\0";
 				int now = read(file_fd, file_buf, 1024);
 				int sent = send(svr.listen_fd, file_buf, now, 0);
-				fprintf(stderr, "now = %d  sent = %d\n", now, sent);
 				filesize-=now;
 			}
 
 			printf("put %s successfully\n",file_name);
 		}
 		else if(strcmp(command, "get")==0){
-			char file_name[128];
-			scanf("%s", file_name);
 			write(svr.listen_fd, "get\n", 5);
 			char ACK[32];
 			read(svr.listen_fd, ACK, 4);
@@ -169,7 +187,10 @@ int main(int argc, char **argv){
 			}
 			printf("get %s successfully\n",file_name);
 		}
-		
+		else{
+			printf("Command not found\n");
+			continue;
+		}
 	}
 	
 
