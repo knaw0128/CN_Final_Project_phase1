@@ -103,6 +103,8 @@ int main(int argc, char **argv){
 			write(svr.listen_fd, "ls\n", 4);
 			int len = read(svr.listen_fd, command_buf, sizeof(command_buf));
 			command_buf[len]='\0';
+			if(len==1)
+				command_buf[0]='\0';
 			printf("%s",command_buf);
 		}
 		else if(strcmp(command, "put")==0){
