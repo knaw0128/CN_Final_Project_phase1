@@ -256,6 +256,7 @@ int main(int argc, char **argv){
             }
             else if(requestP[conn_fd].status==2){
                 if(requestP[conn_fd].file_size<=0){
+                    close(requestP[conn_fd].put_fd);
                     requestP[conn_fd].put_fd = -1;
                     requestP[conn_fd].status = 1;
                     continue;
@@ -273,6 +274,7 @@ int main(int argc, char **argv){
             }
             else if(requestP[conn_fd].status==3){
                 if(requestP[conn_fd].file_size<=0){
+                    close(requestP[conn_fd].get_fd);
                     requestP[conn_fd].get_fd = -1;
                     requestP[conn_fd].status = 1;
                     readFD[requestP[conn_fd].conn_fd] = 1;
