@@ -181,7 +181,7 @@ int main(int argc, char **argv){
                 if(strcmp(requestP[conn_fd].buf,"ls")==0){
                     struct dirent **user_file;
                     int n=scandir(".", &user_file, file_select, alphasort);
-                    char response[2048]="\0";
+                    char response[8192]]="\0";
                     for(int i=0;i<n;i++){
                         strcat(response, user_file[i]->d_name);
                         strcat(response, "\n");
@@ -345,9 +345,6 @@ static void init_server(unsigned short port){
     servaddr.sin_port = htons(port);
     tmp = 1;
 
-    if (setsockopt(svr.listen_fd, SOL_SOCKET, SO_REUSEADDR, (void *)&tmp, sizeof(tmp)) < 0){
-        ERR_EXIT("setsockopt");
-    }
     if (bind(svr.listen_fd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0){
         ERR_EXIT("bind");
     }

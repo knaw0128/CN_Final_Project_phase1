@@ -99,7 +99,7 @@ int main(int argc, char **argv){
 				printf("Command format error\n");
 				continue;
 			}
-			char command_buf[2048];
+			char command_buf[8192];
 			write(svr.listen_fd, "ls\n", 4);
 			int len = read(svr.listen_fd, command_buf, sizeof(command_buf));
 			command_buf[len]='\0';
