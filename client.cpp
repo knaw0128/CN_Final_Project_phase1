@@ -147,7 +147,7 @@ int main(int argc, char **argv){
 				int sent = send(svr.listen_fd, file_buf, now, 0);
 				filesize-=now;
 			}
-
+			close(file_fd);
 			printf("put %s successfully\n",file_name);
 		}
 		else if(strcmp(command, "get")==0){
@@ -174,7 +174,7 @@ int main(int argc, char **argv){
 			}
 			
 			int file_fd=open(file_name, O_WRONLY|O_CREAT|O_APPEND, 0777);
-			if(file_fd<0){
+			if(file_fd<=0){
 				fprintf(stderr, "open file get error\n");
 				perror("Error : ");
 				continue;
@@ -185,6 +185,7 @@ int main(int argc, char **argv){
 				int rev = write(file_fd, file_buf, get);
 				file_size -= get;
 			}
+			close(file_fd);
 			printf("get %s successfully\n",file_name);
 		}
 		else{
