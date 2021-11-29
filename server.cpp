@@ -181,7 +181,7 @@ int main(int argc, char **argv){
                 if(strcmp(requestP[conn_fd].buf,"ls")==0){
                     struct dirent **user_file;
                     int n=scandir(".", &user_file, file_select, alphasort);
-                    char response[8192]]="\0";
+                    char response[8192]="\0";
                     for(int i=0;i<n;i++){
                         strcat(response, user_file[i]->d_name);
                         strcat(response, "\n");
